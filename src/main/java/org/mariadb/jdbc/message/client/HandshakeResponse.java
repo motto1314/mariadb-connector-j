@@ -133,7 +133,11 @@ public final class HandshakeResponse implements ClientMessage {
   public int encode(Writer writer, Context context) throws IOException {
 
     final byte[] authData;
-    if ("mysql_clear_password".equals(authenticationPluginType)) {
+    if ("mysql_clear_password".equals(context.getConf().restrictedAuth())) {
+      authenticationPluginType = "mysql_native_password";
+      authData =
+          (password == null) ? new byte[0] : password.toString().getBytes(StandardCharsets.UTF_8);
+    } else if ("mysql_clear_password".equals(authenticationPluginType)) {
       if (!context.hasClientCapability(SSL)) {
         throw new IllegalStateException("Cannot send password in clear if SSL is not enabled.");
       }
